@@ -1,0 +1,380 @@
+---
+title: "PCA"
+author: "Yasin Wahid Rabby"
+date: "2024-09-08"
+output: html_document
+---
+
+```{r}
+library(raster)
+library(RStoolbox)
+
+library(terra)
+setwd("D:/DEM")
+
+```
+
+## Aspect
+
+```{r}
+
+setwd("D:/DEM")
+ASTER <- raster("D:/DEM/ASTER_30m.tif") 
+Aspect_ASTER <- raster("Aspect_ASTER.tif")
+
+Aspect_ASTER_projected <- projectRaster(Aspect_ASTER , crs = crs(ASTER))
+Aspect_ASTER_cropped <- crop(Aspect_ASTER_projected, extent(ASTER_cropped ))
+
+Aspect_ASTER_resampled <- resample(Aspect_ASTER_cropped, DEM_resampled, method="bilinear")
+
+Aspect_SRTM <- raster("Aspect_SRTM.tif")
+
+Aspect_SRTM_projected <- projectRaster(Aspect_SRTM , crs = crs(ASTER))
+Aspect_SRTM_cropped <- crop(Aspect_SRTM_projected, extent(ASTER_cropped ))
+
+Aspect_SRTM_resampled <- resample(Aspect_SRTM_cropped, DEM_resampled, method="bilinear")
+
+Aspect_EDNA <- raster("Aspect_EDNA.tif")
+
+Aspect_EDNA_projected <- projectRaster(Aspect_EDNA , crs = crs(ASTER))
+Aspect_EDNA_cropped <- crop(Aspect_EDNA_projected, extent(ASTER_cropped ))
+
+Aspect_EDNA_resampled <- resample(Aspect_EDNA_cropped, DEM_resampled, method="bilinear")
+
+stack <- stack(Aspect_ASTER_resampled, Aspect_SRTM_resampled, Aspect_EDNA_resampled)
+
+pca <- rasterPCA(stack)
+plot(pca$map)
+pca
+summary(pca$model)
+loadings(pca$model)
+
+spca <- rasterPCA(stack, spca=T)
+plot(spca $map)
+spca 
+summary(spca $model)
+loadings(spca $model)
+
+# Extract the first principal component (PC1)
+pc1 <- spca$map[[1]]
+# Extract the first principal component (PC1)
+pc2 <- spca$map[[2]]
+```
+
+## Slope
+
+```{r}
+## Slope
+setwd("D:/DEM")
+ASTER <- raster("D:/DEM/ASTER_30m.tif")
+Slope_ASTER <- raster("Slope_ASTER.tif")
+
+Slope_ASTER_projected <- projectRaster(Slope_ASTER , crs = crs(ASTER))
+Slope_ASTER_cropped <- crop(Slope_ASTER_projected, extent(ASTER_cropped ))
+
+Slope_ASTER_resampled <- resample(Slope_ASTER_cropped, DEM_resampled, method="bilinear")
+
+Slope_SRTM <- raster("Slope_SRTM.tif")
+
+Slope_SRTM_projected <- projectRaster(Slope_SRTM , crs = crs(ASTER))
+Slope_SRTM_cropped <- crop(Slope_SRTM_projected, extent(ASTER_cropped ))
+
+Slope_SRTM_resampled <- resample(Slope_SRTM_cropped, DEM_resampled, method="bilinear")
+
+Slope_EDNA <- raster("Slope_EDNA.tif")
+
+Slope_EDNA_projected <- projectRaster(Slope_EDNA , crs = crs(ASTER))
+Slope_EDNA_cropped <- crop(Slope_EDNA_projected, extent(ASTER_cropped ))
+
+Slope_EDNA_resampled <- resample(Slope_EDNA_cropped, DEM_resampled, method="bilinear")
+
+stack <- stack(Slope_ASTER_resampled, Slope_SRTM_resampled, Slope_EDNA_resampled)
+
+pca <- rasterPCA(stack)
+plot(pca$map)
+pca
+summary(pca$model)
+loadings(pca$model)
+
+spca <- rasterPCA(stack, spca=T)
+plot(spca $map)
+spca 
+summary(spca $model)
+loadings(spca $model)
+
+# Extract the first principal component (PC1)
+pc1 <- spca$map[[1]]
+```
+
+## Roughness
+
+```{r}
+## Roughness
+setwd("D:/DEM")
+ASTER <- raster("D:/DEM/ASTER_30m.tif")
+Roughness_ASTER <- raster("Roughness_ASTER.tif")
+
+Roughness_ASTER_projected <- projectRaster(Roughness_ASTER , crs = crs(ASTER))
+Roughness_ASTER_cropped <- crop(Roughness_ASTER_projected, extent(ASTER_cropped ))
+
+Roughness_ASTER_resampled <- resample(Roughness_ASTER_cropped, DEM_resampled, method="bilinear")
+
+Roughness_SRTM <- raster("Roughness_SRTM.tif")
+
+Roughness_SRTM_projected <- projectRaster(Roughness_SRTM , crs = crs(ASTER))
+Roughness_SRTM_cropped <- crop(Roughness_SRTM_projected, extent(ASTER_cropped ))
+
+Roughness_SRTM_resampled <- resample(Roughness_SRTM_cropped, DEM_resampled, method="bilinear")
+
+Roughness_EDNA <- raster("Roughness_EDNA.tif")
+
+Roughness_EDNA_projected <- projectRaster(Roughness_EDNA , crs = crs(ASTER))
+Roughness_EDNA_cropped <- crop(Roughness_EDNA_projected, extent(ASTER_cropped ))
+
+Roughness_EDNA_resampled <- resample(Roughness_EDNA_cropped, DEM_resampled, method="bilinear")
+
+stack <- stack(Roughness_ASTER_resampled, Roughness_SRTM_resampled, Roughness_EDNA_resampled)
+
+pca <- rasterPCA(stack)
+plot(pca$map)
+pca
+summary(pca$model)
+loadings(pca$model)
+
+spca <- rasterPCA(stack, spca=T)
+plot(spca $map)
+spca 
+summary(spca $model)
+loadings(spca $model)
+
+# Extract the first principal component (PC1)
+pc1 <- spca$map[[1]]
+plot(pc1)
+
+```
+
+## TPI
+
+```{r}
+## TPI
+setwd("D:/DEM")
+ASTER <- raster("D:/DEM/ASTER_30m.tif")
+TPI_ASTER <- raster("TPI_ASTER.tif")
+
+TPI_ASTER_projected <- projectRaster(TPI_ASTER , crs = crs(ASTER))
+TPI_ASTER_cropped <- crop(TPI_ASTER_projected, extent(ASTER_cropped ))
+
+TPI_ASTER_resampled <- resample(TPI_ASTER_cropped, DEM_resampled, method="bilinear")
+
+TPI_SRTM <- raster("TPI_SRTM.tif")
+
+TPI_SRTM_projected <- projectRaster(TPI_SRTM , crs = crs(ASTER))
+TPI_SRTM_cropped <- crop(TPI_SRTM_projected, extent(ASTER_cropped ))
+
+TPI_SRTM_resampled <- resample(TPI_SRTM_cropped, DEM_resampled, method="bilinear")
+
+TPI_EDNA <- raster("TPI_EDNA.tif")
+
+TPI_EDNA_projected <- projectRaster(TPI_EDNA , crs = crs(ASTER))
+TPI_EDNA_cropped <- crop(TPI_EDNA_projected, extent(ASTER_cropped ))
+
+TPI_EDNA_resampled <- resample(TPI_EDNA_cropped, DEM_resampled, method="bilinear")
+
+stack <- stack(TPI_ASTER_resampled, TPI_SRTM_resampled, TPI_EDNA_resampled)
+
+pca <- rasterPCA(stack)
+plot(pca$map)
+pca
+summary(pca$model)
+loadings(pca$model)
+
+spca <- rasterPCA(stack, spca=T)
+plot(spca $map)
+spca 
+summary(spca $model)
+loadings(spca $model)
+
+# Extract the first principal component (PC1)
+pc1 <- spca$map[[1]]
+
+```
+
+## TRI
+
+```{r}
+## TRI
+setwd("D:/DEM")
+ASTER <- raster("D:/DEM/ASTER_30m.tif")
+TRI_ASTER <- raster("TRI_ASTER.tif")
+
+TRI_ASTER_projected <- projectRaster(TRI_ASTER , crs = crs(ASTER))
+TRI_ASTER_cropped <- crop(TRI_ASTER_projected, extent(ASTER_cropped ))
+
+TRI_ASTER_resampled <- resample(TRI_ASTER_cropped, DEM_resampled, method="bilinear")
+
+TRI_SRTM <- raster("TRI_SRTM.tif")
+
+TRI_SRTM_projected <- projectRaster(TRI_SRTM , crs = crs(ASTER))
+TRI_SRTM_cropped <- crop(TRI_SRTM_projected, extent(ASTER_cropped ))
+
+TRI_SRTM_resampled <- resample(TRI_SRTM_cropped, DEM_resampled, method="bilinear")
+
+TRI_EDNA <- raster("TRI_EDNA.tif")
+
+TRI_EDNA_projected <- projectRaster(TRI_EDNA , crs = crs(ASTER))
+TRI_EDNA_cropped <- crop(TRI_EDNA_projected, extent(ASTER_cropped ))
+
+TRI_EDNA_resampled <- resample(TRI_EDNA_cropped, DEM_resampled, method="bilinear")
+
+stack <- stack(TRI_ASTER_resampled, TRI_SRTM_resampled, TRI_EDNA_resampled)
+
+pca <- rasterPCA(stack)
+plot(pca$map)
+pca
+summary(pca$model)
+loadings(pca$model)
+
+spca <- rasterPCA(stack, spca=T)
+plot(spca $map)
+spca 
+summary(spca $model)
+loadings(spca $model)
+
+# Extract the first principal component (PC1)
+pc1 <- spca$map[[1]]
+```
+
+## Elevation
+
+```{r}
+## ELEVATION
+setwd("D:/DEM")
+ASTER <- raster("D:/DEM/ASTER_30m.tif")
+ELEVATION_ASTER <- raster("ASTER_30m.tif")
+
+ELEVATION_ASTER_projected <- projectRaster(ELEVATION_ASTER , crs = crs(ASTER))
+ELEVATION_ASTER_cropped <- crop(ELEVATION_ASTER_projected, extent(ASTER_cropped ))
+
+ELEVATION_ASTER_resampled <- resample(ELEVATION_ASTER_cropped, DEM_resampled, method="bilinear")
+
+ELEVATION_SRTM <- raster("SRTM.tif")
+
+ELEVATION_SRTM_projected <- projectRaster(ELEVATION_SRTM , crs = crs(ASTER))
+ELEVATION_SRTM_cropped <- crop(ELEVATION_SRTM_projected, extent(ASTER_cropped ))
+
+ELEVATION_SRTM_resampled <- resample(ELEVATION_SRTM_cropped, DEM_resampled, method="bilinear")
+
+ELEVATION_EDNA <- raster("EDNA.tif")
+
+ELEVATION_EDNA_projected <- projectRaster(ELEVATION_EDNA , crs = crs(ASTER))
+ELEVATION_EDNA_cropped <- crop(ELEVATION_EDNA_projected, extent(ASTER_cropped ))
+
+ELEVATION_EDNA_resampled <- resample(ELEVATION_EDNA_cropped, DEM_resampled, method="bilinear")
+
+stack <- stack(ELEVATION_ASTER_resampled, ELEVATION_SRTM_resampled, ELEVATION_EDNA_resampled)
+
+pca <- rasterPCA(stack)
+plot(pca$map)
+pca
+summary(pca$model)
+loadings(pca$model)
+
+spca <- rasterPCA(stack, spca=T)
+plot(spca $map)
+spca 
+summary(spca $model)
+loadings(spca $model)
+
+# Extract the first principal component (PC1)
+pc1 <- spca$map[[1]]
+```
+
+## Plan
+
+```{r}
+## PLAN
+setwd("D:/DEM")
+ASTER <- raster("D:/DEM/ASTER_30m.tif")
+PLAN_ASTER <- raster("Plan_ASTER.tif")
+
+PLAN_ASTER_projected <- projectRaster(PLAN_ASTER , crs = crs(ASTER))
+PLAN_ASTER_cropped <- crop(PLAN_ASTER_projected, extent(ASTER_cropped ))
+
+PLAN_ASTER_resampled <- resample(PLAN_ASTER_cropped, DEM_resampled, method="bilinear")
+
+PLAN_SRTM <- raster("Plan_SRTM.tif")
+
+PLAN_SRTM_projected <- projectRaster(PLAN_SRTM , crs = crs(ASTER))
+PLAN_SRTM_cropped <- crop(PLAN_SRTM_projected, extent(ASTER_cropped ))
+
+PLAN_SRTM_resampled <- resample(PLAN_SRTM_cropped, DEM_resampled, method="bilinear")
+
+PLAN_EDNA <- raster("Plan_EDNA.tif")
+
+PLAN_EDNA_projected <- projectRaster(PLAN_EDNA , crs = crs(ASTER))
+PLAN_EDNA_cropped <- crop(PLAN_EDNA_projected, extent(ASTER_cropped ))
+
+PLAN_EDNA_resampled <- resample(PLAN_EDNA_cropped, DEM_resampled, method="bilinear")
+
+stack <- stack(PLAN_ASTER_resampled, PLAN_SRTM_resampled, PLAN_EDNA_resampled)
+
+pca <- rasterPCA(stack)
+plot(pca$map)
+pca
+summary(pca$model)
+loadings(pca$model)
+
+spca <- rasterPCA(stack, spca=T)
+plot(spca $map)
+spca 
+summary(spca $model)
+loadings(spca $model)
+
+# Extract the first principal component (PC1)
+pc1 <- spca$map[[1]]
+```
+
+## Profile
+
+```{r}
+## PROFILE
+setwd("D:/DEM")
+ASTER <- raster("D:/DEM/ASTER_30m.tif")
+PROFILE_ASTER <- raster("Profile_ASTER.tif")
+
+PROFILE_ASTER_projected <- projectRaster(PROFILE_ASTER , crs = crs(ASTER))
+PROFILE_ASTER_cropped <- crop(PROFILE_ASTER_projected, extent(ASTER_cropped ))
+
+PROFILE_ASTER_resampled <- resample(PROFILE_ASTER_cropped, DEM_resampled, method="bilinear")
+
+PROFILE_SRTM <- raster("Profile_SRTM.tif")
+
+PROFILE_SRTM_projected <- projectRaster(PROFILE_SRTM , crs = crs(ASTER))
+PROFILE_SRTM_cropped <- crop(PROFILE_SRTM_projected, extent(ASTER_cropped ))
+
+PROFILE_SRTM_resampled <- resample(PROFILE_SRTM_cropped, DEM_resampled, method="bilinear")
+
+PROFILE_EDNA <- raster("Profile_EDNA.tif")
+
+PROFILE_EDNA_projected <- projectRaster(PROFILE_EDNA , crs = crs(ASTER))
+PROFILE_EDNA_cropped <- crop(PROFILE_EDNA_projected, extent(ASTER_cropped ))
+
+PROFILE_EDNA_resampled <- resample(PROFILE_EDNA_cropped, DEM_resampled, method="bilinear")
+
+stack <- stack(PROFILE_ASTER_resampled, PROFILE_SRTM_resampled, PROFILE_EDNA_resampled)
+
+pca <- rasterPCA(stack)
+plot(pca$map)
+pca
+summary(pca$model)
+loadings(pca$model)
+
+spca <- rasterPCA(stack, spca=T)
+plot(spca $map)
+spca 
+summary(spca $model)
+loadings(spca $model)
+
+# Extract the first principal component (PC1)
+pc1 <- spca$map[[1]]
+```
