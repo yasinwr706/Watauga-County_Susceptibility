@@ -1,0 +1,719 @@
+---
+title: "Decoding Undergraduate Admission Tests in Bangladesh: Insights and Analysis"
+author: "Yasin Wahid Rabby"
+date: "`r Sys.Date()`"
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    toc: true
+---
+
+# Goal
+
+The objective of this project is to analyze undergraduate admission tests in Bangladesh using a data set sourced from [Kaggle](https://www.kaggle.com/datasets/ahefatresearch/undergraduate-admission-test-survey-in-bangladesh/data). The data set comprises survey responses from 600 students attending public and private universities across Bangladesh.
+
+As part of my statistics and data science courses at Wake Forest University, I teach various hypothesis testing methods. This project aims to apply hypothesis testing from both data science and statistical perspectives. Specifically, we will employ a permutation test for hypothesis testing from a data science standpoint, while adopting a reference distribution approach for statistical testing, contingent on whether the data meet normality assumptions.
+
+This analysis seeks to provide deeper insights into admission test patterns at public and private universities in Bangladesh. Prior to conducting the hypothesis tests, we will perform necessary data wrangling and exploratory data analysis to prepare and better understand the data set.
+
+# Data Preparation and Processing
+
+```{r, error=FALSE, message=FALSE, warning=FALSE}
+# Load required package
+library(dplyr)
+library(DT)
+library(tidyverse)
+```
+
+I have downloaded the data and will upload it from my local machine.
+
+```{r, error=FALSE, message=FALSE, warning=FALSE}
+#Load Data
+Data <- read.csv("C:/Users/yrabb/Downloads/Undergraduate Admission Test Survey in Bangladesh.csv")
+
+
+```
+
+## Understand the Variables
+
+To show the variables in a table I used DT package which helps to show the data in an interactive table. I also created a data frame to list the type of the variables and used the data table function to show them as a interactive table.
+
+```{r, error=FALSE, message=FALSE, warning=FALSE}
+# Displaying the first few rows of the data
+datatable(head(Data), class= 'cell-border stripe')
+# Create a summary table for variable names and their data types
+variable_summary <- data.frame(
+ 
+  Data_Type = sapply(Data, class)
+)
+```
+
+This data set has 600 observations and 15 variables and from them other then the HSC_GPA and SSC_GPA all other variable types are integer. The data descriptor is given below
+
+### Data Descriptor
+
++-------------------------+--------------+-------------------------------------------------------------+
+| Variable                | Class        | Description and Labels                                      |
++=========================+==============+=============================================================+
+| SSC_GPA                 | Numeric      | Grade Point Average (GPA) in\                               |
+|                         |              | Secondary School Certificate Examination 2.00 - 5.00        |
++-------------------------+--------------+-------------------------------------------------------------+
+| HSC_GPA                 | Numeric      | Grade Point Average (GPA) in\                               |
+|                         |              | Higher-Secondary School Certificate Examination 2.00 - 5.00 |
++-------------------------+--------------+-------------------------------------------------------------+
+| Family_Economy          | Integer      | Family Economic Condition                                   |
+|                         |              |                                                             |
+|                         |              | Below Average: 1\                                           |
+|                         |              | Average: 2\                                                 |
+|                         |              | Medium: 3\                                                  |
+|                         |              | Good: 4                                                     |
++-------------------------+--------------+-------------------------------------------------------------+
+| Residence               | Integer      | Residence during preparation                                |
+|                         |              |                                                             |
+|                         |              | Village: 0                                                  |
+|                         |              |                                                             |
+|                         |              | Town: 1                                                     |
++-------------------------+--------------+-------------------------------------------------------------+
+| Family_Education        | Integer      | Educational background of parents                           |
+|                         |              |                                                             |
+|                         |              | Uneducated: 0                                               |
+|                         |              |                                                             |
+|                         |              | Educated: 1                                                 |
++-------------------------+--------------+-------------------------------------------------------------+
+| Political_Involvement   | Integer      | Political involvement during preparation                    |
+|                         |              |                                                             |
+|                         |              | No: 0                                                       |
+|                         |              |                                                             |
+|                         |              | Yes: 1                                                      |
++-------------------------+--------------+-------------------------------------------------------------+
+| Social_Media_Engagement | Integer      | Time spent on Social media during preparation               |
+|                         |              |                                                             |
+|                         |              | 0-1 Hours:1                                                 |
+|                         |              |                                                             |
+|                         |              | 1-3 Hours: 3                                                |
+|                         |              |                                                             |
+|                         |              | 3-5 Hours: 4                                                |
+|                         |              |                                                             |
+|                         |              | More than 5 Hours: 5                                        |
++-------------------------+--------------+-------------------------------------------------------------+
+| Residence_with_Family   | Integer      | Staying with parents or not during preparation              |
+|                         |              |                                                             |
+|                         |              | No: 0                                                       |
+|                         |              |                                                             |
+|                         |              | Yes: 1                                                      |
++-------------------------+--------------+-------------------------------------------------------------+
+| Duration_of_Study       | Integer      | Time spent in study during preparation                      |
+|                         |              |                                                             |
+|                         |              | 2: 1-2 Hours                                                |
+|                         |              |                                                             |
+|                         |              | 4: 2-3 Hours                                                |
+|                         |              |                                                             |
+|                         |              | 6: 3-5 Hours                                                |
+|                         |              |                                                             |
+|                         |              | 8: 5-7 Hours                                                |
++-------------------------+--------------+-------------------------------------------------------------+
+| School_Location         | Integer      | Location of School during SSC                               |
+|                         |              |                                                             |
+|                         |              | Village: 0                                                  |
+|                         |              |                                                             |
+|                         |              | Town: 1                                                     |
++-------------------------+--------------+-------------------------------------------------------------+
+| College_Location        | Integer      | Location of College during HSC                              |
+|                         |              |                                                             |
+|                         |              | Village: 0                                                  |
+|                         |              |                                                             |
+|                         |              | Town: 1                                                     |
++-------------------------+--------------+-------------------------------------------------------------+
+| Bad_Habits              | Integer      | Bad habits like smoking, drinking, or drug addiction        |
+|                         |              |                                                             |
+|                         |              | No: 0                                                       |
+|                         |              |                                                             |
+|                         |              | Yes: 1                                                      |
++-------------------------+--------------+-------------------------------------------------------------+
+| Relationship            | Integer      | Involvement in any type of relationship                     |
+|                         |              |                                                             |
+|                         |              | No: 0                                                       |
+|                         |              |                                                             |
+|                         |              | Yes: 1                                                      |
++-------------------------+--------------+-------------------------------------------------------------+
+| External_Factors        | Integer      | External challenges like personal issues                    |
+|                         |              |                                                             |
+|                         |              | No: 0                                                       |
+|                         |              |                                                             |
+|                         |              | Yes: 1                                                      |
++-------------------------+--------------+-------------------------------------------------------------+
+| University              | Integer      | Admission in which type of university                       |
+|                         |              |                                                             |
+|                         |              | 1: Public                                                   |
+|                         |              |                                                             |
+|                         |              | 0: Private                                                  |
++-------------------------+--------------+-------------------------------------------------------------+
+
+: From the above data descriptor it is evident that other than HSC and SSC we need to change the data type since these variables are not integer number rather categorical.
+
+```{r, error=FALSE, message=FALSE, warning=FALSE}
+# Convert Coloumns 3 to 15 to factors
+Data <- Data %>% 
+  mutate(across(3:15, as.factor))
+# Check the Structure and Verify the Change
+converted_summary <- data.frame(
+ 
+  Data_Type = sapply(Data, class)
+)
+datatable(converted_summary)
+```
+
+Now we have all variables in desirable format. We will also check whether these is any missing data in the data set.
+
+```{r, error=FALSE, message=FALSE, warning=FALSE}
+# Check the number of missing values 
+missing_values <- data.frame(
+  
+  Total_Missing = colSums(is.na(Data))
+)
+
+# Display the result
+datatable(missing_values)
+```
+
+So there are three missing values for HSC GPA variable. We will drop these three rows since it will ave minimum effect on the analysis.
+
+```{r, error=FALSE, message=FALSE, warning=FALSE}
+# Drop row with missing values
+Data_cleaned <- Data %>% drop_na()
+```
+
+# Exploratory Data Analysis (EDA)
+
+In this exploratory data analysis (EDA), we will employ summarization, tables, and visualization techniques to examine the data set and identify potential trends. The data set pertains to a university admission survey in Bangladesh, with the primary target variable being "University," which indicates whether a student enrolled in a public or private university.
+
+In Bangladesh, admission to public universities is generally considered more competitive than to private universities. Our goal is to identify which variables influence or play a role in determining admission to public universities. If any patterns or relationships are observed during the EDA, we will perform statistical tests to verify whether these relationships are significant.
+
+Let us examine the data set to determine the number of students enrolled in public and private universities.
+
+```{r, error=FALSE, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(dplyr)
+
+library(ggplot2)
+library(plotly)
+# Summarize the data to calculate counts for public and private university
+data_summary <- Data_cleaned %>%
+  group_by(University) %>%
+  summarise(count = n())
+
+# Create the bar plot with custom labels: 0= Private; 1= Public
+p <- ggplot(data=data_summary, aes(x=University, y=count)) +
+  geom_bar(stat="identity", fill="steelblue") +
+  theme_minimal() +
+  labs(
+    title="Number of Students by University Type",
+    x="University Type",
+    y="Count of Students"
+  ) +
+  scale_x_discrete(labels=c("0" = "Private", "1" = "Public"))
+# Horizontal bar plot
+q=p + coord_flip()
+# Interactive Barplot Using Plotly
+ggplotly(q)
+```
+
+So majority of the surveyed students were admitted in the public universities in Bangladesh.
+
+Since two out of the twelve variables, **SSC GPA** and **HSC GPA**, are numerical while the remaining variables are categorical, the exploratory data analysis (EDA) will be divided into two sections: numerical data analysis and categorical data analysis. In both sections, the grouping variable will be the **University Type**.
+
+## Numerical Data Analysis
+
+Since HSC and SSC are the two numerical variables we will check whether there is a difference in these two exam GPA's depending on the type of university. First we will see over all summary.
+
+```{r, error=FALSE, message=FALSE, warning=FALSE}
+library(gt)
+library(gtExtras)
+library(DT)
+library(skimr)
+# Select the HSC and SSC variable to Check the Summary
+#Data_cleaned %>% select(HSC_GPA, SSC_GPA) %>% 
+  #gt_plt_summary()
+
+Data_cleaned %>% select(HSC_GPA, SSC_GPA) %>% 
+  skim()
+# Number of Students who got less than 4 GPA in SSC
+SSC_Count <- Data_cleaned %>% select(HSC_GPA, SSC_GPA) %>%filter(SSC_GPA<=4) %>% 
+  summarise(count= n())
+
+# Number of Students who got less than 4 GPA in HHSC
+HSC_Count <- Data_cleaned %>% select(HSC_GPA, SSC_GPA) %>%filter(HSC_GPA<=4) %>% 
+  summarise(count= n())
+# Creating and Dataframe and Presenting as Table
+PR <- as.data.frame(c(SSC_Count, HSC_Count))
+colnames(PR) <- c("SSC", "HSC")
+datatable(PR, caption= "Number of Students who got Less than Equal 4 GPA" )
+```
+
+It is surprising that most of the students did very well in both SSC and HSC exams since the mean is 4.8 for SSC and 4.9 for HSC. Median is 5 for both of the exams. The distribution also shows that the data are skewed left. The lowest SSC GPA is 3.17 and lowest HSC GPA is 2.99. HSC is an advanced exam and the table also shows that in HSC more students get less than equal to 4 GPA than SSC.
+
+### Analysis by University Type
+
+```{r, error=FALSE, message=FALSE, warning=FALSE}
+Data_cleaned %>% 
+  # Recode the 'University' column: '0' -> 'Private' and '1' -> 'Public'
+  mutate(University = recode(University, '0' = 'Private', '1' = 'Public')) %>%
+  
+  # Group by the 'University' column
+  group_by(University) %>%
+  
+  # Summarize to calculate the mean HSC and SSC GPAs for each university type
+  summarise(
+    mean_score_SSC = mean(HSC_GPA, na.rm = TRUE),  # Calculate mean of HSC GPA
+    mean_score_HSC = mean(SSC_GPA, na.rm = TRUE),   # Calculate mean of SSC GPA
+    median_score_SSC = median(HSC_GPA, na.rm = TRUE),  # Calculate median of HSC GPA
+    median_score_HSC = median(SSC_GPA, na.rm = TRUE)   # Calculate median of SSC GPA
+  )
+```
+
+Above table shows that students who got admitted in private universities have higher mean and median SSC and HSC GPA than the students who got admission in private universities.
+
+```{r, error=FALSE, message=FALSE, warning=FALSE}
+library(ggpubr)
+library(dplyr)
+library(plotly)
+library(gridExtra)
+library(cowplot)
+Data_cleaned_m <- Data_cleaned %>% 
+  # Recode the 'University' column: '0' -> 'Private' and '1' -> 'Public'
+  mutate(University = recode(University, '0' = 'Private', '1' = 'Public'))
+
+library(gridExtra)
+get_legend<-function(myggplot){
+  tmp <- ggplot_gtable(ggplot_build(myggplot))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend <- tmp$grobs[[leg]]
+  return(legend)
+}
+
+p <- ggboxplot(Data_cleaned_m , x = "University", y = "SSC_GPA",
+                color = "University", palette =c("#00AFBB", "#E7B800", "#FC4E07"),
+                add = "jitter", shape = "University")
+  
+q<- ggboxplot(Data_cleaned_m , x = "University", y = "HSC_GPA",
+                color = "University", palette =c("#00AFBB", "#E7B800", "#FC4E07"),
+                add = "jitter", shape = "University")
+#Save the legend
+legend <- get_legend(p)
+# Remove the legend from the box plot
+p <- p + theme(legend.position="none")
+q <- q + theme(legend.position="none")
+grid.arrange(p, q, legend, ncol=2, nrow = 2, 
+             layout_matrix = rbind(c(1,2), c(3,3)),
+             widths = c(2.7, 2.7), heights = c(2.5, 0.2))
+```
+
+The box plots corroborate the findings observed in the mean and median SSC and HSC GPAs. A notable difference is evident in the median SSC and HSC GPA scores between students enrolled in public and private universities. The central tendency measures and the box plots collectively indicate that students who gained admission to public universities generally have higher GPAs in both SSC and HSC examinations.
+
+## Categorical Data Analysis
+
+For exploratory analysis of the 12 categorical data and their relationship with the University admission we have used mosaic plot.
+
+```{r, error=FALSE, message=FALSE, warning=FALSE}
+library(ggmosaic)
+library(ggmosaic)
+library(gridExtra)
+library(cowplot)
+## Function for Mosaic Plot
+mosiac <- function(data, x, y) {
+  
+  # Create the mosaic plot
+  p1 <- ggplot(data = data) +
+    geom_mosaic(aes(x = product(!!sym(x), !!sym(y)), fill = !!sym(y))) +
+    labs(
+      title = paste("Mosaic Plot of", x, "by", y),
+      x = x,
+      y = "Proportion",
+      fill = y
+    ) +
+    theme_minimal()
+  
+  #  Make the plot interactive
+  ggplotly(p1)
+  
+}
+mosiac(Data_cleaned_m, "Family_Economy", "University")
+mosiac(Data_cleaned_m, "Duration_of_Study", "University")
+mosiac(Data_cleaned_m, "Social_Media_Engagement", "University")
+mosiac(Data_cleaned_m, "Relationship", "University")
+```
+
+We created a function to generate mosaic plots. Instead of creating plots for all 13 categorical variables, we selected **Family Economy**, **Social Media Engagement**, **Duration of Study**, and **Relationship** variables based on preliminary plotting and analysis.
+
+The mosaic plot for **Family Economy** illustrates the economic differences between students admitted to public and private universities. In public universities, 164 out of 340 students (approximately 48%) came from families with average or below-average income levels, compared to about 36% for private universities. This clearly highlights the economic disparity between the two types of institutions.
+
+For **Social Media Engagement**, the plot shows that public university students generally spend less time on social media compared to their counterparts in private universities.
+
+The **Duration of Study** plot reveals that 127 out of 340 public university students (around 37%) spend 5–7 hours per day studying, whereas only about 19% of private university students dedicate the same amount of time to their studies.
+
+Lastly, the plot for **Romantic Relationships** indicates a similar trend, with a 10-percentage-point difference in involvement in romantic relationships between public and private university students.
+
+## Role of GPA in Admission Tests
+
+Here, we aim to determine whether GPA is the most defining factor for enrollment in public universities in Bangladesh. In the data set, 340 out of 597 students (approximately 57%) enrolled in public universities. A GPA of 5 is the highest achievable score in both SSC and HSC exams.
+
+We calculated the percentage of students who achieved a GPA of 5 in both SSC and HSC and subsequently enrolled in public universities. The mean SSC GPA is 4.86, and the mean HSC GPA is 4.79. Based on these averages, we categorized students with scores below these thresholds as "below average" and then analyzed the percentage of these below-average students who enrolled in public universities.
+
+```{r, error=FALSE, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(dplyr)
+library(ggplot2)
+library(plotly)
+# Calculate the percentage of Public universities in the dataset,
+# the percentage of Public universities among students with perfect GPAs,
+# and the percentage of Public universities among students with below-average GPAs.
+library(tidyverse)
+# Compute the summary
+data_new <- Data_cleaned_m %>% 
+  summarize(
+    public = sum(University == 'Public') / n() * 100,
+    perfect_GPA = sum(SSC_GPA == 5 & HSC_GPA == 5 & University == "Public") / 
+                  sum(SSC_GPA == 5 & HSC_GPA == 5) * 100,
+    below_average = sum(SSC_GPA < 4.865 & HSC_GPA < 4.79 & University == "Public") / 
+                    sum(SSC_GPA < 4.865 & HSC_GPA < 4.79) * 100
+  )
+# Convert data to long format for ggplot
+data_long <- data_new %>%
+  pivot_longer(c('public', 'perfect_GPA', 'below_average'), names_to = "Category", values_to = "Percentage")
+# Create the bar plot
+e=ggplot(data_long, aes(x = Category, y = Percentage, fill = Category)) +
+  geom_bar(stat = "identity", show.legend = FALSE) +
+  
+  labs(
+    
+    x = "Category",
+    y = "Percentage"
+  ) +
+  theme_minimal() 
+ggplotly(e)
+```
+
+The bar chart above illustrates the significance of GPA in SSC and HSC exams for enrollment in public universities in Bangladesh. Generally, students with perfect GPAs are considered studious and meritorious. Public university entrance exams are highly competitive, and these students tend to excel in them. The chart reveals that approximately 83% of perfect GPA holders successfully enrolled in public universities.
+
+It is worth noting that the sky-blue bar represents the percentage of students in the data set who enrolled in public universities, which is around 52%. The first bar indicates the enrollment rate of below-average students in public universities, which is notably low at approximately 9%, implying that 91% of these students were admitted to private universities.
+
+To provide further insights, two additional scenarios were visualized:
+
+1.  GPA Improved:Students who did not achieve a perfect GPA (GPA 5) in SSC but managed to secure a perfect GPA in HSC and their corresponding enrollment percentage in public universities.
+
+2.  GPA Dropped: Students who achieved a perfect GPA in SSC but did not achieve the same in HSC and their enrollment percentage in public universities.
+
+```{r, error=FALSE, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+# the percentage of Public universities among students with perfect GPAs
+data_new_l <- Data_cleaned_m %>% 
+  summarize(
+    GPA_Improved = sum(SSC_GPA<5 & HSC_GPA == 5 & University == "Public") / 
+                  sum(SSC_GPA <5 & HSC_GPA == 5) * 100,
+    GPA_Dropped= sum(SSC_GPA== 5 & HSC_GPA < 5 & University == "Public") / 
+                    sum(SSC_GPA== 5 & HSC_GPA < 5) * 100
+  )
+# Convert data to long format for ggplot
+data_long <- data_new_l %>%
+  pivot_longer(c('GPA_Improved', 'GPA_Dropped'), names_to = "Category", values_to = "Percentage")
+
+# Create the bar plot
+e=ggplot(data_long, aes(x = Category, y = Percentage, fill = Category)) +
+  geom_bar(stat = "identity", show.legend = FALSE) +
+  
+  labs(
+    
+    x = "Category",
+    y = "Percentage"
+  ) +
+  theme_minimal() 
+ggplotly(e)
+```
+
+The above bar plot does not show any significant difference in the percentage between the two groups.
+
+Previous analyses indicate that GPA plays a significant role in students' enrollment in public universities. Our findings suggest that students with a perfect GPA have a higher likelihood of securing admission. However, this may also be attributed to their studious nature and the possibility that they dedicated more time to preparation compared to other students. To explore this further, we examined the impact of study duration and social media engagement. For this analysis, we focused specifically on students with a perfect GPA and below average students.
+
+```{r, error=FALSE, message=FALSE, warning=FALSE}
+library(gmodels)
+# Duration of Study for Perfect GPA Holders  
+a <- Data_cleaned_m %>%
+  filter(SSC_GPA == 5, HSC_GPA == 5, University == 'Public') %>%  # Filter rows
+  select(Duration_of_Study, University) %>%  # Select relevant columns
+  table() %>%  # Create a contingency table
+  prop.table() * 100   # Convert to percentages
+ a <-  a %>% as.data.frame() %>%  # Convert to a data frame
+  filter(University == 'Public') %>%  # Retain only 'Public' rows
+  select(Duration_of_Study, Freq) %>%  # Select necessary columns
+  rename(Public_Percentage = Freq)  # Rename the 'Freq' column
+
+b <- Data_cleaned_m %>%
+  filter(SSC_GPA == 5, HSC_GPA == 5, University == 'Private') %>%  # Filter rows
+  select(Duration_of_Study, University) %>%  # Select relevant columns
+  table() %>%  # Create a contingency table
+  prop.table() * 100  # Convert to percentages
+ b <- b %>%  as.data.frame() %>%  # Convert to a data frame
+  filter(University == 'Private') %>%  # Retain only 'Public' rows
+  select(Duration_of_Study, Freq) %>%  # Select necessary columns
+  rename(Private_Percentage = Freq)  # Rename the 'Freq' column
+# Join a and b
+result_Duration <- a %>%
+  inner_join(b, by = "Duration_of_Study")
+# Format the percentages to two decimal places
+result_Duration<- result_Duration %>%
+  mutate(
+    Public_Percentage = round(Public_Percentage, 2),
+    Private_Percentage = round(Private_Percentage, 2)
+  )
+datatable(result_Duration, caption = 'Table: Duration of Study for Perfect GPA Holders.' )
+# Social Media Engagement for Perfect GPA Holders
+a <- Data_cleaned_m %>%
+  filter(SSC_GPA == 5, HSC_GPA == 5, University == 'Public') %>%  # Filter rows
+  select(Social_Media_Engagement, University) %>%  # Select relevant columns
+  table() %>%  # Create a contingency table
+  prop.table() * 100   # Convert to percentages
+ a <-  a %>% as.data.frame() %>%  # Convert to a data frame
+  filter(University == 'Public') %>%  # Retain only 'Public' rows
+  select(Social_Media_Engagement, Freq) %>%  # Select necessary columns
+  rename(Public_Percentage = Freq)  # Rename the 'Freq' column
+b <- Data_cleaned_m %>%
+  filter(SSC_GPA == 5, HSC_GPA == 5, University == 'Private') %>%  # Filter rows
+  select(Social_Media_Engagement, University) %>%  # Select relevant columns
+  table() %>%  # Create a contingency table
+  prop.table() * 100  # Convert to percentages
+ b <- b %>%  as.data.frame() %>%  # Convert to a data frame
+  filter(University == 'Private') %>%  # Retain only 'Public' rows
+  select(Social_Media_Engagement, Freq) %>%  # Select necessary columns
+  rename(Private_Percentage = Freq)  # Rename the 'Freq' column
+# Join a and b by the common column 'Duration_of_Study'
+result_Social<- a %>%
+  inner_join(b, by = "Social_Media_Engagement")
+# Format the percentages to two decimal places
+result_Social<- result_Social %>%
+  mutate(
+    Public_Percentage = round(Public_Percentage, 2),
+    Private_Percentage = round(Private_Percentage, 2)
+  )
+datatable(result_Social,   caption = 'Table: Social Media Engagement of Perfect GPA Holders.')
+# Duration of Study for Below Average Students
+a <- Data_cleaned_m %>%
+  filter(SSC_GPA <4.86, HSC_GPA <4.79, University == 'Public') %>%  # Filter rows
+  select(Duration_of_Study, University) %>%  # Select relevant columns
+  table() %>%  # Create a contingency table
+  prop.table() * 100   # Convert to percentages
+ a <-  a %>% as.data.frame() %>%  # Convert to a data frame
+  filter(University == 'Public') %>%  # Retain only 'Public' rows
+  select(Duration_of_Study, Freq) %>%  # Select necessary columns
+  rename(Public_Percentage = Freq)  # Rename the 'Freq' column
+b <- Data_cleaned_m %>%
+  filter(SSC_GPA <4.86, HSC_GPA <4.79, University == 'Private') %>%  # Filter rows
+  select(Duration_of_Study, University) %>%  # Select relevant columns
+  table() %>%  # Create a contingency table
+  prop.table() * 100  # Convert to percentages
+ b <- b %>%  as.data.frame() %>%  # Convert to a data frame
+  filter(University == 'Private') %>%  # Retain only 'Public' rows
+  select(Duration_of_Study, Freq) %>%  # Select necessary columns
+  rename(Private_Percentage = Freq)  # Rename the 'Freq' column
+# Join a and b
+result_Duration <- a %>%
+  inner_join(b, by = "Duration_of_Study")
+# Format the percentages to two decimal places
+result_Duration<- result_Duration %>%
+  mutate(
+    Public_Percentage = round(Public_Percentage, 2),
+    Private_Percentage = round(Private_Percentage, 2)
+  )
+datatable(result_Duration , caption ='Table: Duration of Study of Below Average Students. ')
+#Social Media Engagement for Below Average Studnets
+a <- Data_cleaned_m %>%
+  filter(SSC_GPA <4.86, HSC_GPA <4.79, University == 'Public') %>%  # Filter rows
+  select(Social_Media_Engagement, University) %>%  # Select relevant columns
+  table() %>%  # Create a contingency table
+  prop.table() * 100   # Convert to percentages
+ a <-  a %>% as.data.frame() %>%  # Convert to a data frame
+  filter(University == 'Public') %>%  # Retain only 'Public' rows
+  select(Social_Media_Engagement, Freq) %>%  # Select necessary columns
+  rename(Public_Percentage = Freq)  # Rename the 'Freq' column
+b <- Data_cleaned_m %>%
+  filter(SSC_GPA <4.86, HSC_GPA <4.79, University == 'Private') %>%  # Filter rows
+  select(Social_Media_Engagement, University) %>%  # Select relevant columns
+  table() %>%  # Create a contingency table
+  prop.table() * 100  # Convert to percentages
+ b <- b %>%  as.data.frame() %>%  # Convert to a data frame
+  filter(University == 'Private') %>%  # Retain only 'Public' rows
+  select(Social_Media_Engagement, Freq) %>%  # Select necessary columns
+  rename(Private_Percentage = Freq)  # Rename the 'Freq' column
+# Join a and b
+result_Social<- a %>%
+  inner_join(b, by = "Social_Media_Engagement")
+# Format the percentages to two decimal places
+result_Social<- result_Social %>%
+  mutate(
+    Public_Percentage = round(Public_Percentage, 2),
+    Private_Percentage = round(Private_Percentage, 2)
+  )
+datatable(result_Social, caption ='Table: Social Media Engagement of Below Average Students. ')
+```
+
+The analyses above highlight how the duration of study, social media engagement, and relationship status are associated with enrollment in public and private universities.
+
+The first table shows that approximately 75% of perfect GPA holders who enrolled in public universities studied for 3 to 7 hours a day. In contrast, around 55% of perfect GPA holders who enrolled in private universities studied for less than 3 hours a day. This suggests that perfect GPA holders with longer study duration are more likely to enroll in public universities. While achieving a perfect GPA is crucial, the duration of study also plays an important role in success.
+
+Social media engagement emerges as another significant factor, as it can reduce the time available for studying. The second table reveals that approximately 76% of perfect GPA holders admitted to public universities spend less than 3 hours on social media daily, compared to around 57% for those in private universities. A striking finding is that about 23% of perfect GPA holders enrolled in private universities spend more than 5 hours on social media daily—four times higher than their counterparts in public universities. This indicates that, despite being high-achieving students, excessive time spent on social media may have hindered their ability to pass public university entrance exams.
+
+For below-average students, the trends differ. Around 45% of these students who enrolled in private universities studied for 3 to 7 hours a day, compared to approximately 50% for those enrolled in public universities—showing a nearly identical pattern. A similar trend is observed in social media engagement. Therefore, the impact of long study hours and low social media engagement on below-average students is less evident and warrants further investigation.
+
+# Statistical  Tests
+
+## Numerical Variable
+
+The exploratory data analysis (EDA) revealed differences between students enrolled in public and private universities for variables such as SSC and HSC GPA, duration of study, social media engagement, and family income. To determine whether these differences are statistically significant, we will conduct appropriate statistical tests. We have two numerical variables SSC and HSC GPA and rest of the variables are categorical variables. Therefore we will use different tests. For numerical variables depending on the assumption of the normality is met or not of the data we will either use t test or Mann-Whitney U test.
+
+## Assessing Normality Assumptions
+
+```{r, error=FALSE, message=FALSE, warning=FALSE}
+# SSC_GPA
+shapiro.test(Data_cleaned_m$SSC_GPA[Data_cleaned_m$University == "Private"])
+shapiro.test(Data_cleaned_m$SSC_GPA[Data_cleaned_m$University== "Public"])
+# HSC_GPA
+ shapiro.test(Data_cleaned_m$HSC_GPA[Data_cleaned_m$University == "Private"])
+ shapiro.test(Data_cleaned_m$HSC_GPA[Data_cleaned_m$University== "Public"])
+```
+
+The Shapiro-Wilk test shows that SSC_GPA and HSC_GPA data for both "Private" and "Public" university students deviates significantly from normality. Non-parametric tests, such as the Mann-Whitney U test, are more suitable for comparing these groups.
+
+## Mann-Whitney U test
+
+```{r, error=FALSE, message=FALSE, warning=FALSE}
+SSC_Test <- wilcox.test(SSC_GPA ~ University, data = Data_cleaned_m)
+HSC_Test <- wilcox.test(HSC_GPA ~ University, data = Data_cleaned_m)
+# Create a data frame with p-values
+Wilcoxon_Results <- data.frame(
+  Test = c("SSC", "HSC"),
+  p.value = c(SSC_Test$p.value, HSC_Test$p.value)
+)
+Wilcoxon_Results$Result <- ifelse(Wilcoxon_Results$p.value < 0.05, "Reject Null", "Fail to Reject Null")
+# Print the results
+datatable(Wilcoxon_Results)
+```
+
+**Hypotheses for the Mann-Whitney U test :**
+
+**Null Hypothesis:** The two populations (or groups) have the same distribution, or equivalently, the median difference between the two groups is zero.
+
+**Alternative Hypothesis:**
+
+The distributions of the two populations are different in some way, which could be a shift in location.
+
+The table above shows that for three variables SSC GPA\< HSC GPA and duration of study there is significant difference between the two groups.
+
+s and duration of study were not normally distributed we used Mann-Whitney U test to find out whether there is any significant difference between two groups: 0= Got Chance in Private University; and 1= Got Chance in Public University.
+
+From the above table it is evident that students who got chance in the public university certainly have better GPA .
+
+## Statistical Tests for Categorical Variables
+
+There are 12 categorical data and we will apply chi-square tests. The Chi-Square test is a non-parametric statistical test used to determine if there is a significant association between two categorical variables. It evaluates whether the observed frequencies in a contingency table differ significantly from the expected frequencies under the assumption of independence.
+
+In this context, the Chi-Square tests have been used to assess whether there is a statistically significant relationship between **categorical predictor variables** (e.g., Family Economy, Residence, Social Media Engagement) and the **type of university enrollment** (Public vs. Private).
+
+```{r, error=FALSE, message=FALSE, warning=FALSE}
+library(dplyr)
+library(purrr)
+# Define a function to run Chi-Square tests
+run_chi_square <- function(var, data, target_var) {
+  test_result <- chisq.test(table(data[[var]], data[[target_var]]))
+  tibble(
+    Variable = var,
+    X_squared = test_result$statistic,
+    df = test_result$parameter,
+    p_value = test_result$p.value,
+    Significant = ifelse(test_result$p.value < 0.05, "Yes", "No") # Add significance column
+  )
+}
+# List of variables to test
+variables <- c(
+  "Family_Economy",
+  "Residence",
+  "Family_Education",
+  "Politics",
+  "Social_Media_Engagement",
+  "Residence_with_Family",
+  "Duration_of_Study",
+  "College_Location", 
+  "Bad_Habits",
+  "Relationship",
+  "External_Factors"
+)
+ #Apply the function to each variable
+chi_square_results <- variables %>%
+  map_dfr(~ run_chi_square(.x, Data_cleaned_m, "University"))
+
+# Render the table with significant results highlighted
+datatable(
+  chi_square_results, 
+  caption = "Table: Chi-Square Test Results",
+  options = list(
+    pageLength = 10
+  )
+) %>%
+  formatStyle(
+    'Significant', 
+    target = 'row',
+    backgroundColor = styleEqual("Yes", "lightgreen")
+  )
+```
+
+We presented the mosaic plots for Family_economy,, Social_Media_Engagement, Duration of Study and Relationship since by visual inspection we were able to see the association between these variables and university enrollment. But the above table for chi-square test results also show the green highlighted variable show significant association in university enrollment.
+
+## Understanding Relationship using Logistic Regression
+
+The logistic regression model aims to predict the likelihood of a student enrolling in a public or private university (binary outcome: University) based on several predictor variables. We also use logistic regression for inference. It focuses on the interpretation of the coefficients to show the relationship between the explanatory variable in this case 14 variables with the dependent variables and in this case the University Types.
+
+```{r, error=FALSE, message=FALSE, warning=FALSE}
+# Logistic regression model
+model <- glm(University ~ . ,
+             data = Data_cleaned_m, family = "binomial")
+# Summary of the model
+summary(model)
+```
+
+Here's an interpretation of the key results:
+
+**Significant Predictors (p \< 0.05):**
+
+1.  **SSC_GPA (p = 0.000321):**\
+    Higher SSC GPA significantly increases the likelihood of enrolling in a public university.
+
+2.  **HSC_GPA (p \< 0.0001):**\
+    Higher HSC GPA significantly increases the likelihood of enrolling in a public university.
+
+3.  **Social Media Engagement:**
+
+    -   **Level 3 (p = 0.0019):** Decreases the likelihood of enrolling in a public university.
+
+    -   **Level 4 (p = 0.0105):** Decreases the likelihood of enrolling in a public university.
+
+    -   **Level 5 (p = 0.0002):** Decreases the likelihood of enrolling in a public university.
+
+4.  **Duration of Study:**
+
+    -   **Level 4 (p = 0.0376):** Increases the likelihood of enrolling in a public university.
+
+    -   **Level 6 (p \< 0.0001):** Increases the likelihood of enrolling in a public university.
+
+    -   **Level 8 (p = 0.0011):** Increases the likelihood of enrolling in a public university.
+
+5.  **Relationship (p = 0.00999):**\
+    Having a relationship decreases the likelihood of enrolling in a public university.
+
+**Overall Interpretation:**
+
+1.  Academic performance (SSC and HSC GPA) is a strong determinant of university enrollment, with higher scores associated with public universities.
+
+2.  Social factors like social media engagement, relationship status, and the duration of study significantly influence enrollment patterns.
+
+3.  Some variables, such as family economy and residence, do not show a significant association with university type in this model.
